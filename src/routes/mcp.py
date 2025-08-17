@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Dict, Any, List
 
-logging.basicConfig(level=logging.INFO )
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 mcp_bp = Blueprint('mcp', __name__)
@@ -53,6 +53,8 @@ def handle_mcp_request():
             method = mcp_data['method']
             if method == 'initialize':
                 return handle_initialize(mcp_data)
+            elif method == 'notifications/initialized':
+                return handle_notifications_initialized(mcp_data)
             elif method == 'tools/list':
                 return handle_tools_list(mcp_data)
             elif method == 'tools/call':
@@ -86,6 +88,10 @@ def handle_initialize(mcp_data):
             "serverInfo": {"name": "n8n-mcp-fixed", "version": "1.0.0"}
         }
     })
+
+def handle_notifications_initialized(mcp_data):
+    logger.info("Handling notifications/initialized")
+    return jsonify({}), 200
 
 def handle_tools_list(mcp_data):
     tools = [{

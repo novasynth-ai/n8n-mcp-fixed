@@ -80,6 +80,15 @@ def make_n8n_request(method: str, endpoint: str, data: Dict[Any, Any] = None) ->
         logger.error(f"Request failed: {str(e)}")
         raise
 
+@mcp_bp.route('/mcp', methods=['OPTIONS'])
+def handle_mcp_options():
+    """Handle CORS preflight requests"""
+    response = jsonify({})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 @mcp_bp.route('/mcp', methods=['POST'])
 def handle_mcp_request():
     """Handle MCP requests from MCPO"""
@@ -98,7 +107,9 @@ def handle_mcp_request():
         if 'method' in mcp_data:
             method = mcp_data['method']
             
-            if method == 'tools/list':
+            if method == 'initialize':
+                return handle_initialize(mcp_data)
+            elif method == 'tools/list':
                 return handle_tools_list()
             elif method == 'tools/call':
                 return handle_tool_call(mcp_data)
@@ -112,6 +123,21 @@ def handle_mcp_request():
     except Exception as e:
         logger.error(f"Error handling MCP request: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+def handle_initialize(mcp_data):
+    """Handle MCP initialize requests"""
+    logger.info("Handling MCP initialize request")
+    
+    return jsonify({
+        "protocolVersion": "2024-11-05",
+        "capabilities": {
+            "tools": {}
+        },
+        "serverInfo": {
+            "name": "n8n-mcp-fixed",
+            "version": "1.0.0"
+        }
+    })
 
 def handle_tools_list():
     """Return the list of available n8n tools"""
